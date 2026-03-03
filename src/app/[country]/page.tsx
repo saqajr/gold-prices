@@ -3,6 +3,7 @@ import { countries, CountryCode } from '@/lib/countries';
 import PriceTable, { PriceRow } from '@/components/prices/PriceTable';
 import AdBanner from '@/components/ads/AdBanner';
 import { notFound } from 'next/navigation';
+import { ShieldCheck, Zap, Info } from 'lucide-react';
 
 export async function generateStaticParams() {
     return Object.keys(countries).map((code) => ({
@@ -15,33 +16,27 @@ export async function generateMetadata({ params }: { params: Promise<{ country: 
     const code = resolvedParams.country as CountryCode;
     const config = countries[code];
 
-    if (!config) return { title: 'Not Found' };
+    if (!config) return { title: 'غير موجود' };
 
     return {
-        title: `Live Gold Prices in ${config.name} (${config.currency}) | GoldPrices Portal`,
-        description: `Get real-time 24k, 21k, 18k gold prices and silver prices in ${config.name}. Updated instantly.`,
+        title: `أسعار الذهب المباشرة في ${config.nameAr} (${config.currency}) | بوابة الذهب`,
+        description: `احصل على أسعار الذهب عيار 24، 21، 18 وأسعار الفضة في ${config.nameAr} لحظة بلحظة. عيار الذهب اليوم وتحديثات الأسواق.`,
     };
 }
 
 async function getPrices(country: string) {
-    // In Next.js App Router, we fetch directly from our own API route or the external source.
-    // Using an absolute URL because it runs on the server.
     const baseUrl = process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}`
         : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
 
     try {
         const res = await fetch(`${baseUrl}/api/prices?country=${country}`, {
-            next: { revalidate: 60 } // Revalidate every 60 seconds for freshness
+            next: { revalidate: 60 }
         });
 
-        if (!res.ok) {
-            console.error(`API Error: ${res.status} ${res.statusText}`);
-            return null;
-        }
+        if (!res.ok) return null;
         return res.json();
     } catch (error) {
-        console.error('Error fetching prices:', error);
         return null;
     }
 }
@@ -58,68 +53,89 @@ export default async function CountryDashboard({ params }: { params: Promise<{ c
     const liveData = await getPrices(code);
 
     const goldPrices: PriceRow[] = liveData?.gold || [
-        { label: 'Market Data Unavailable', price: 0, previousPrice: 0 }
+        { label: 'بيانات السوق غير متوفرة', buyPrice: 0, sellPrice: 0 }
     ];
 
     const silverPrices: PriceRow[] = liveData?.silver || [
-        { label: 'Market Data Unavailable', price: 0, previousPrice: 0 }
+        { label: 'بيانات السوق غير متوفرة', buyPrice: 0, sellPrice: 0 }
     ];
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-700">
-            {/* Page Header */}
-            <section className="text-center md:text-left">
-                <h1 className="text-3xl md:text-5xl justify-center md:justify-start font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
-                    <span className="text-4xl text-yellow-500">🏆</span>
-                    Gold Prices in {config.name}
-                </h1>
-                <p className="text-slate-500 mt-3 text-lg font-medium">
-                    Live market tracking in {config.currency} ({config.currencySymbol})
+        <div className="space-y-10 md:space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            {/* Hero Section */}
+            <section className="text-right bg-slate-50 border border-slate-100 p-6 md:p-16 rounded-[2.5rem] relative overflow-hidden shadow-sm">
+                <div className="absolute top-0 left-0 w-96 h-96 bg-gold/10 blur-[120px] -translate-x-1/2 -translate-y-1/2 rounded-full" />
+
+                <div className="relative z-10">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gold/10 text-gold-dark rounded-full text-xs font-black mb-8 border border-gold/20 backdrop-blur-sm">
+                        <Zap size={14} className="animate-pulse" />
+                        تحديث حي ومباشر
+                    </div>
+                    <h1 className="text-4xl md:text-7xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6">
+                        سعر الذهب اليوم في <span className="text-gold"> {config.nameAr}</span>
+                    </h1>
+                    <p className="text-slate-500 text-lg md:text-xl font-medium max-w-2xl leading-relaxed mb-10">
+                        نقدم لك تقريرًا شاملاً لأسعار الذهب والفضة في {config.nameAr} بالعملة المحلية ({config.currency})، محدثًا لحظة بلحظة من قلب السوق لضمان أدق البيانات.
+                    </p>
+
                     {liveData?.timestamp && (
-                        <span className="block text-sm text-slate-400 mt-1 font-normal">
-                            Last Updated: {new Date(liveData.timestamp).toLocaleTimeString()}
-                        </span>
+                        <div className="flex items-center gap-3 text-sm text-slate-400 font-bold bg-white/50 inline-flex px-4 py-2 rounded-lg border border-slate-100">
+                            <Info size={16} className="text-gold" />
+                            آخر تحديث: {new Date(liveData.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
                     )}
-                </p>
+                </div>
             </section>
 
             {/* Main Content Grid */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 md:gap-12">
 
-                {/* Left Column (Prices) */}
-                <div className="xl:col-span-2 space-y-8">
-                    <PriceTable
-                        title="Gold Prices"
-                        currencySymbol={config.currencySymbol}
-                        data={goldPrices}
-                    />
+                {/* Left Side: Prices */}
+                <div className="xl:col-span-2 space-y-10 md:space-y-16">
+                    <section id="gold-prices" className="scroll-mt-24">
+                        <PriceTable
+                            title="أسعار الذهب"
+                            currencySymbol={config.currencySymbol}
+                            data={goldPrices}
+                        />
+                    </section>
 
-                    {/* In-Feed AdSense Banner */}
-                    <AdBanner className="w-full h-[90px] md:h-[250px] lg:max-w-[728px] mx-auto" />
-
-                    <PriceTable
-                        title="Silver Prices"
-                        currencySymbol={config.currencySymbol}
-                        data={silverPrices}
-                    />
-                </div>
-
-                {/* Right Column (Sidebar for Ads & News) */}
-                <aside className="space-y-6">
-                    <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl p-6 shadow-xl text-white">
-                        <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-                            Market Status
-                        </h3>
-                        <p className="text-sm text-slate-300 leading-relaxed">
-                            Global gold markets are currently open. Local {config.name} pricing may vary based on merchant premiums and local supply.
-                        </p>
+                    <div className="w-full">
+                        <AdBanner className="w-full h-[150px] md:h-[300px] rounded-[2rem] overflow-hidden bg-slate-50 border border-slate-100 shadow-inner" />
+                        <p className="text-[10px] text-center text-slate-300 font-black uppercase mt-2 tracking-widest">إعلان ممول</p>
                     </div>
 
-                    {/* Sidebar Sticky AdSense Placeholder (300x600) */}
-                    <div className="sticky top-24">
-                        <AdBanner className="w-full h-[250px] md:h-[600px] border-none shadow-inner bg-slate-100" />
-                        <p className="text-xs text-center text-slate-400 mt-2 uppercase tracking-wider font-semibold">Sponsored</p>
+                    <section id="silver-prices" className="scroll-mt-24">
+                        <PriceTable
+                            title="أسعار الفضة"
+                            currencySymbol={config.currencySymbol}
+                            data={silverPrices}
+                        />
+                    </section>
+                </div>
+
+                {/* Right Side: Sidebar */}
+                <aside className="space-y-8">
+                    <div className="bg-slate-950 rounded-[2.5rem] p-8 md:p-10 shadow-2xl text-white relative overflow-hidden group border border-slate-800">
+                        <div className="absolute top-0 right-0 w-full h-1.5 bg-gold" />
+                        <h3 className="font-black text-2xl mb-6 flex items-center gap-3">
+                            <ShieldCheck className="text-gold" size={28} />
+                            نشرة السوق
+                        </h3>
+                        <p className="text-slate-400 leading-relaxed font-medium mb-8 text-lg">
+                            أسواق الذهب العالمية تشهد تحركات مستمرة. يرجى الملاحظة أن الأسعار في {config.nameAr} قد تتغير طوال اليوم بناءً على العرض والطلب وقيمة المصنعية.
+                        </p>
+                        <div className="flex items-center gap-3 bg-white/5 p-4 rounded-2xl border border-white/10">
+                            <span className="w-3 h-3 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
+                            <span className="text-gold font-black text-sm">التداولات مستقرة حالياً</span>
+                        </div>
+                    </div>
+
+                    <div className="sticky top-28 space-y-4 hidden xl:block">
+                        <div className="bg-white border border-slate-100 rounded-[2rem] p-4 shadow-sm">
+                            <AdBanner className="w-full h-[600px] rounded-2xl overflow-hidden border-none" />
+                        </div>
+                        <p className="text-[10px] text-center text-slate-300 font-black uppercase tracking-widest font-sans">Advertisement Space</p>
                     </div>
                 </aside>
 

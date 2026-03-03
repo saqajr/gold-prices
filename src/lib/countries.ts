@@ -4,6 +4,7 @@ export type CountryCode = 'eg' | 'sa' | 'ae' | 'kw';
 export interface CountryConfig {
     code: CountryCode;
     name: string;
+    nameAr: string;
     currency: string;
     currencySymbol: string;
     language: string;
@@ -13,13 +14,15 @@ export const countries: Record<CountryCode, CountryConfig> = {
     eg: {
         code: 'eg',
         name: 'Egypt',
+        nameAr: 'مصر',
         currency: 'EGP',
-        currencySymbol: '£',
+        currencySymbol: 'ج.م',
         language: 'ar-EG',
     },
     sa: {
         code: 'sa',
         name: 'Saudi Arabia',
+        nameAr: 'السعودية',
         currency: 'SAR',
         currencySymbol: 'ر.س',
         language: 'ar-SA',
@@ -27,6 +30,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
     ae: {
         code: 'ae',
         name: 'United Arab Emirates',
+        nameAr: 'الإمارات',
         currency: 'AED',
         currencySymbol: 'د.إ',
         language: 'ar-AE',
@@ -34,6 +38,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
     kw: {
         code: 'kw',
         name: 'Kuwait',
+        nameAr: 'الكويت',
         currency: 'KWD',
         currencySymbol: 'د.ك',
         language: 'ar-KW',
