@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { ShieldCheck, Zap, Info } from 'lucide-react';
 import FormattedTime from '@/components/layout/FormattedTime';
 import BlogSection from '@/components/layout/BlogSection';
+import { fetchPriceData } from '@/lib/prices';
 
 export async function generateStaticParams() {
     return Object.keys(countries).map((code) => ({
@@ -25,23 +26,6 @@ export async function generateMetadata({ params }: { params: Promise<{ country: 
     };
 }
 
-async function getPrices(country: string) {
-    const baseUrl = process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000');
-
-    try {
-        const res = await fetch(`${baseUrl}/api/prices?country=${country}`, {
-            next: { revalidate: 60 }
-        });
-
-        if (!res.ok) return null;
-        return res.json();
-    } catch (error) {
-        return null;
-    }
-}
-
 export default async function CountryDashboard({ params }: { params: Promise<{ country: string }> }) {
     const resolvedParams = await params;
     const code = resolvedParams.country as CountryCode;
@@ -51,7 +35,7 @@ export default async function CountryDashboard({ params }: { params: Promise<{ c
         notFound();
     }
 
-    const liveData = await getPrices(code);
+    const liveData = await fetchPriceData(code);
 
     return (
         <div className="space-y-10 md:space-y-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">

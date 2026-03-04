@@ -23,8 +23,18 @@ export default function PriceDashboard({ initialData, currencySymbol }: PriceDas
 
     // Sync state with props when server re-renders (due to router.refresh)
     useEffect(() => {
-        setData(initialData);
+        if (initialData) {
+            setData(initialData);
+        }
     }, [initialData]);
+
+    if (!data || !data.gold) {
+        return (
+            <div className="p-8 text-center bg-white rounded-3xl border border-slate-100 shadow-sm">
+                <p className="text-slate-500 font-bold">جاري تحميل الأسعار...</p>
+            </div>
+        );
+    }
 
     const getActiveData = () => {
         switch (activeTab) {
